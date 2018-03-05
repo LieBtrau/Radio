@@ -53,7 +53,7 @@
 #define __RADIO_h__
 
 #include <Arduino.h>
-#include <Wire.h>
+#include "radiointerface.h"
 
 // The DEBUG_xxx Macros enable Information to the Serial port.
 // They can be enabled by setting the _debugEnabled variable to true disabled by using the debugEnable function.
@@ -98,8 +98,12 @@ extern "C" {
 enum RADIO_BAND {
   RADIO_BAND_NONE = 0, ///< No band selected.
 
-  RADIO_BAND_FM = 1, ///< FM band 87.5 – 108 MHz (USA, Europe) selected.
-  RADIO_BAND_FMWORLD = 2, ///< FM band 76 – 108 MHz (Japan, Worldwide) selected.
+  RADIO_BAND_FM = 1, ///< FM band 87.5 to 108 MHz (USA, Europe) selected.
+  RADIO_BAND_FMWORLD = 2, ///< FM band 76 to 108 MHz (Japan, Worldwide) selected.
+    // CCIR: ITU region 1: EUR, Australia, Africa : 87.5 to 108MHz
+    // CCIR: ITU region 2: Americas : 88 to 108MHz, 200KHz channel spacing
+    // OIRT: Eastern EUR : 65.8 to 74MHz
+    // Japan: 76 to 95MHz, no RDS
   RADIO_BAND_AM = 3, ///< AM band selected.
   RADIO_BAND_KW = 4, ///< KW band selected.
 
@@ -108,7 +112,8 @@ enum RADIO_BAND {
 
 
 /// Frequency data type.
-/// Only 16 bits are used for any frequency value (not the real one)
+/// Only 16 bits are used for any frequency value (unit = 10KHz)
+/// e.g. 87.1MHz -> RADIO_FREQ = 8710
 typedef uint16_t RADIO_FREQ;
 
 
@@ -140,7 +145,7 @@ class RADIO {
 public:
   const uint8_t MAXVOLUME = 15; ///< max volume level for all radio implementations.
 
-  RADIO(); ///< create a new object from this class.
+  RADIO(RadioInterface* pRadio): _pRadio(pRadio){} // RADIO()
 
   virtual bool   init();  ///< initialize library and the chip.
   virtual void   term();  ///< terminate all radio functions.
@@ -168,7 +173,7 @@ public:
   virtual void       setBand(RADIO_BAND newBand);   ///< Set the current band.
   virtual RADIO_BAND getBand();                     ///< Retrieve the current band setting.
 
-  virtual void       setFrequency(RADIO_FREQ newF); ///< Start using the new frequency for receiving.
+  virtual bool       setFrequency(RADIO_FREQ newF); ///< Start using the new frequency for receiving.
   virtual RADIO_FREQ getFrequency(void);            ///< Retrieve the current tuned frequency.
 
   virtual void       setBandFrequency(RADIO_BAND newBand, RADIO_FREQ newFreq); ///< Set Band and Frequency in one call.
@@ -193,19 +198,8 @@ public:
 
   // ----- Utilitys -----
 
-  /// Format the current frequency for display and printing.
-  virtual void formatFrequency(char *s, uint8_t length);
-
-  // ----- debug Helpers send information to Serial port
-
-  virtual void debugEnable(bool enable = true);  ///< Enable sending debug information to the Serial port.
-  virtual void debugRadioInfo(); ///< Print out all radio information.
-  virtual void debugAudioInfo(); ///< Print out all audio information.
-  virtual void debugStatus();    ///< Send debug information about actual available chip functionality and other internal things.
 
 protected:
-  bool _debugEnabled; ///< Set by debugEnable() and controls debugging functionality.
-
   uint8_t _volume;    ///< Last set volume level.
   bool    _bassBoost; ///< Last set bass Boost effect.
   bool    _mono;      ///< Last set mono effect.
@@ -217,15 +211,15 @@ protected:
 
   RADIO_FREQ _freqLow;    ///< Lowest frequency of the current selected band.
   RADIO_FREQ _freqHigh;   ///< Highest frequency of the current selected band.
-  RADIO_FREQ _freqSteps;  ///< Resulution of the tuner.
+  RADIO_FREQ _freqSteps;  ///< Resolution of the tuner.
 
   receiveRDSFunction _sendRDS; ///< Registered RDS Function that is called on new available data.
 
   void _printHex4(uint16_t val); ///> Prints a register as 4 character hexadecimal code with leading zeros.
+  RadioInterface* _pRadio;
 
 private:
   void int16_to_s(char *s, uint16_t val); ///< Converts a int16 number to a string, similar to itoa, but using the format "00000".
-
 }; // class RADIO
 
 

@@ -30,12 +30,6 @@
 
 // ----- implement
 
-/// Setup the radio object and initialize private variables to 0.
-/// Don't change the radio chip (yet).
-RADIO::RADIO() {
-  memset(this, 0, sizeof(RADIO));
-} // RADIO()
-
 
 /// The RADIO class doesn't implement a concrete chip so nothing has to be initialized.
 bool RADIO::init() {
@@ -52,7 +46,8 @@ void RADIO::term() {
 // ----- Volume control -----
 
 void RADIO::setVolume(uint8_t newVolume) {
-  _volume = newVolume;
+
+  _volume = newVolume > MAXVOLUME ? MAXVOLUME : newVolume;
 } // setVolume()
 
 
@@ -130,8 +125,7 @@ void RADIO::setBand(RADIO_BAND newBand) {
   if (newBand == RADIO_BAND_FM) {
     _freqLow = 8700;
     _freqHigh = 10800;
-    _freqSteps = 10;
-
+    _freqSteps = 10; //100KHz
   }
   else if (newBand == RADIO_BAND_FMWORLD) {
     _freqLow = 7600;
@@ -143,7 +137,7 @@ void RADIO::setBand(RADIO_BAND newBand) {
 
 /// Start using the new frequency for receiving.
 /// The new frequency is stored for later retrieval.
-void RADIO::setFrequency(RADIO_FREQ newFreq) {
+bool RADIO::setFrequency(RADIO_FREQ newFreq) {
   _freq = newFreq;
 } // setFrequency()
 
@@ -212,102 +206,6 @@ void RADIO::attachReceiveRDS(receiveRDSFunction newFunction)
 {
   _sendRDS = newFunction;
 } // attachReceiveRDS()
-
-
-// format the current frequency for display and printing
-void RADIO::formatFrequency(char *s, uint8_t length) {
-  RADIO_BAND b = getBand();
-  RADIO_FREQ f = getFrequency();
-
-  if ((s != NULL) && (length > 10)) {
-    *s = '\0';
-
-    if ((b == RADIO_BAND_FM) || (b == RADIO_BAND_FMWORLD)) {
-      // " ff.ff MHz" or "fff.ff MHz"
-      int16_to_s(s, (uint16_t)f);
-
-      // insert decimal point
-      s[5] = s[4]; s[4] = s[3]; s[3] = '.';
-
-      // append units
-      strcpy(s+6, " MHz");
-    } // if
-
-    //     f = _freqLow + (channel * _bandSteps);
-    //     if (f < 10000) Serial.write(' ');
-    //     Serial.print(f / 100); Serial.print('.'); Serial.print(f % 100); Serial.print(" MHz ");
-  } // if
-
-} // formatFrequency()
-
-
-// enable debugging information on Serial port.
-void RADIO::debugEnable(bool enable) {
-  _debugEnabled = enable;
-} // debugEnable()
-
-
-// print out all radio information
-void RADIO::debugRadioInfo() {
-  RADIO_INFO info;
-  this->getRadioInfo(&info);
-
-  Serial.print(info.rds    ? " RDS"    : " ---");
-  Serial.print(info.tuned  ? " TUNED"  : " -----");
-  Serial.print(info.stereo ? " STEREO" : "  MONO ");
-  Serial.print("  RSSI: "); Serial.print(info.rssi);
-  Serial.print("  SNR: "); Serial.print(info.snr);
-  Serial.println();
-} // debugRadioInfo()
-
-
-// print out all audio information
-void RADIO::debugAudioInfo() {
-  AUDIO_INFO info;
-  this->getAudioInfo(&info);
-
-  Serial.print(info.bassBoost ? " BASS"  : " ----");
-  Serial.print(info.mute      ? " MUTE"  : " ----");
-  Serial.print(info.softmute  ? " SOFTMUTE"  : " --------");
-  Serial.println();
-} // debugAudioInfo()
-
-
-/// The RADIO class doesn't have interesting status information so nothing is sent.
-void RADIO::debugStatus() {
-  // no output.
-} // debugStatus
-
-
-/// This is a special format routine used to format frequencies as strings with leading blanks.
-/// up to 5 digits only ("    0".."99999")
-/// *s MUST be able to hold the characters
-void RADIO::int16_to_s(char *s, uint16_t val) {
-  uint8_t n = 5;
-
-  while (n > 0) {
-    n--;
-    if ((n == 4) || (val > 0)) {
-      s[n] = '0' + (val % 10);
-      val = val / 10;
-    }
-    else {
-      s[n] = ' ';
-    }
-  } // while
-} // int16_to_s()
-
-
-/// Prints a register as 4 character hexadecimal code with leading zeros.
-void RADIO::_printHex4(uint16_t val)
-{
-  if (val <= 0x000F) Serial.print('0');     // if less 2 Digit
-  if (val <= 0x00FF) Serial.print('0');     // if less 3 Digit
-  if (val <= 0x0FFF) Serial.print('0');     // if less 4 Digit
-  Serial.print(val, HEX);
-  Serial.print(' ');
-} // _printHex4
-
 
 // The End.
 
