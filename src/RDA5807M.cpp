@@ -37,51 +37,42 @@ void RDA5807M::getRadioInfo(RADIO_INFO *info)
 bool RDA5807M::init()
 {
     _pRadio->init();
-    if(!reset() || !powerOn())
+    if(!reset() || !powerOn(true))
     {
         return false;
     }
+    bitSet(aui_RDA5807_Reg[5],R05_INT_MODE);
+    aui_RDA5807_Reg[5] = R05_SEEKTH<<8 | R05_LNA_PORT_SEL<<6 | R05_LNA_ICSEL_BIT<<4;
+    setBassBoost(true);
+    bitSet(aui_RDA5807_Reg[2], R02_RDS_EN);
     setBand(RADIO_BAND_FMWORLD);
     setChannelSpacing(KHz100);
     return setFrequency(_freqLow);
 }
 
-bool RDA5807M::powerOn()
+bool RDA5807M::powerOn(bool bPowerOn)
 {
-    bitSet(aui_RDA5807_Reg[3], R03_TUNE);
-    bitSet(aui_RDA5807_Reg[2], R02_ENABLE);
-    bool bRet=writeAllRegs();
-    bitClear(aui_RDA5807_Reg[3], R03_TUNE);
+    if(bPowerOn)
+    {
+        bitSet(aui_RDA5807_Reg[2], R02_DHIZ);
+        bitSet(aui_RDA5807_Reg[2], R02_DMUTE);
+    }
+    bitWrite(aui_RDA5807_Reg[2], R02_ENABLE, bPowerOn);
+    bool bRet=writeReg(2);
+    if(!bPowerOn)
+    {
+        delay(600);
+    }
     return bRet;
 }
 
 bool RDA5807M::reset()
 {
-    word aui_RDA5807_Regdef[10] =
-    {
-        0x0758,  // 00 defaultid
-        0x0000,  // 01 not used
-        0xD009,  // 02 DHIZ,DMUTE,BASS, POWERUPENABLE,RDS
-        0x0000,  // 03
-        0x1400,  // 04 DE ? SOFTMUTE
-        0x84DF,  // 05 INT_MODE,SEEKTH=0110,????, Volume=15
-        0x4000,  // 06 OPENMODE=01
-        0x0000,  // 07 unused ?
-        0x0000,  // 08 unused ?
-        0x0000   // 09 unused ?
-    };
-    for(byte i=0;i<7;i++)
-    {
-        aui_RDA5807_Reg[i]=aui_RDA5807_Regdef[i];
-    }
+    aui_RDA5807_Reg[2]=0x0000;
     bitSet(aui_RDA5807_Reg[2], R02_SOFT_RESET);
-    bitSet(aui_RDA5807_Reg[2], R02_DHIZ);
-    bitSet(aui_RDA5807_Reg[2], R02_DMUTE);
-    bitSet(aui_RDA5807_Reg[2], R02_BASS);
-    bitSet(aui_RDA5807_Reg[2], R02_RDS_EN);
-    bitSet(aui_RDA5807_Reg[2], R02_ENABLE);
-    bool bRet=writeAllRegs();
+    bool bRet=writeReg(2);
     bitClear(aui_RDA5807_Reg[2], R02_SOFT_RESET);
+    delay(50);
     return bRet;
 }
 
@@ -114,9 +105,10 @@ void RDA5807M::setBand(RADIO_BAND newBand)
     }
 }
 
-void RDA5807M::setBassBoost(bool switchOn)
+bool RDA5807M::setBassBoost(bool switchOn)
 {
-
+    bitWrite(aui_RDA5807_Reg[2], R02_BASS, switchOn);
+    return writeReg(2);
 }
 
 void RDA5807M::setChannelSpacing(SPACINGS sp)
@@ -192,9 +184,6 @@ void RDA5807M::setVolume(byte newVolume)
 
 bool RDA5807M::debugStatus(word* regs)
 {
-    word val;
-    readReg(0xA, val);
-    Serial.println(val, HEX);
     return readAllRegs(regs);
 
 }

@@ -25,8 +25,7 @@
 //   http://projects.qi-hardware.com/index.php/p/qi-kernel/source/tree/144e9c2530f863e32a3538b06c63484401bbe314/drivers/media/radio/radio-rda5807.c
 
 
-#ifndef RDA5807M_h
-#define RDA5807M_h
+#pragma once
 
 #include <radio.h>
 
@@ -46,7 +45,7 @@ public:
 
     // ----- Audio features -----
     void   setVolume(uint8_t newVolume);
-    void   setBassBoost(bool switchOn);
+    bool setBassBoost(bool switchOn);
     void   setMono(bool switchOn);
     void   setMute(bool switchOn);
     void   setSoftMute(bool switchOn);    ///< Set the soft mute mode (mute on low signals) on or off.
@@ -72,7 +71,6 @@ public:
 
     void    debugScan();               // Scan all frequencies and report a status
     bool    debugStatus(word* data);             // DebugInfo about actual chip data available
-
 private:
     //Bit definitions
     const byte R02_DHIZ=15;
@@ -87,6 +85,10 @@ private:
     const byte R03_BAND0=2;
     const byte R03_SPACE1=1;
     const byte R03_SPACE0=0;
+    const byte R05_INT_MODE=15;
+    const word R05_SEEKTH=0x08;
+    const byte R05_LNA_PORT_SEL=0x2;
+    const byte R05_LNA_ICSEL_BIT=0x2;
     const byte R0A_RDSR=15;
     const byte R0A_STC=14;
     const byte R0A_ST=10;
@@ -98,7 +100,7 @@ private:
 
     enum {US_EU=0, JPN=1, WW=2, EEUR=3}bands;
     bool reset();
-    bool powerOn();
+    bool powerOn(bool bPowerOn);
     bool readAllRegs(word *regs);                       ///< Read regs 0x0A and up.
     bool readReg(byte regNr, word &val);
     bool writeReg(byte regNr);
@@ -107,5 +109,3 @@ private:
     word arrayToRegister(byte* dataIn);
     word aui_RDA5807_Reg[16];
 };
-
-#endif

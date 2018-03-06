@@ -49,8 +49,7 @@
 ///
 
 
-#ifndef __RADIO_h__
-#define __RADIO_h__
+#pragma once
 
 #include <Arduino.h>
 #include "radiointerface.h"
@@ -161,7 +160,7 @@ public:
   virtual void    setSoftMute(bool switchOn);   ///< Control the softmute mode (mute on low signals) of the radio chip.
   virtual bool    getSoftMute();                ///< Retrieve the current soft mute mode setting.
 
-  virtual void    setBassBoost(bool switchOn);  ///< Control the bass boost mode of the radio chip.
+  virtual bool    setBassBoost(bool switchOn);  ///< Control the bass boost mode of the radio chip.
   virtual bool    getBassBoost();               ///< Retrieve the current bass boost mode setting.
 
   // ----- Receiver features -----
@@ -221,8 +220,5 @@ protected:
 private:
   void int16_to_s(char *s, uint16_t val); ///< Converts a int16 number to a string, similar to itoa, but using the format "00000".
 }; // class RADIO
-
-
-#endif
 
 // End.

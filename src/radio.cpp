@@ -61,7 +61,7 @@ uint8_t RADIO::getVolume() {
 /// Control the bass boost mode of the radio chip.
 /// The base implementation ony stores the value to the internal variable.
 /// @param switchOn true to switch bassBoost mode on, false to switch bassBoost mode off.
-void RADIO::setBassBoost(bool switchOn) {
+bool RADIO::setBassBoost(bool switchOn) {
   _bassBoost = switchOn;
 } // setBassBoost()
 
