@@ -8,15 +8,45 @@
 
 #include "RDA5807M.h"
 
-void RDA5807M::checkRDS()
+RDA5807M::RDA5807M(RadioInterface* prf): RADIO(prf)
 {
-
+    memset(aui_RDA5807_Reg, 0, sizeof(aui_RDA5807_Reg));
 }
 
+bool RDA5807M::checkRDS()
+{
+    if(!readReg(0xA, aui_RDA5807_Reg[0xA]))
+    {
+        return false;
+    }
+    if(!bitRead(aui_RDA5807_Reg[0xA],R0A_RDSS))
+    {
+        Serial.println("RDS not synced");
+        return false;
+    }
+    Serial.println("RDS synced");
+    if(!bitRead(aui_RDA5807_Reg[0xA],R0A_RDSR))
+    {
+        return false;
+    }
+    Serial.println("RDS group ready");
+    for(byte i=0xC;i<=0xF;i++)
+    {
+        readReg(i,aui_RDA5807_Reg[i]);
+        Serial.print(aui_RDA5807_Reg[i]);Serial.print(" ");
+    }
+    Serial.println();
+    return true;
+}
 
 RADIO_FREQ RDA5807M::getFrequency(void)
 {
-    return 0;
+    if(!readReg(0xA, aui_RDA5807_Reg[0xA]))
+    {
+        return 0;
+    }
+    word channel = aui_RDA5807_Reg[0xA] & 0x03FF;
+    return _freqLow + _freqSteps * channel;
 }
 
 void RDA5807M::getRadioInfo(RADIO_INFO *info)
@@ -83,12 +113,16 @@ void RDA5807M::term()
 
 void RDA5807M::seekUp(bool toNextSender)
 {
-
+    bitSet(aui_RDA5807_Reg[2], R02_SEEKUP);
+    bitSet(aui_RDA5807_Reg[2], R02_SEEK);
+    writeReg(2);
 }
 
 void RDA5807M::seekDown(bool toNextSender)
 {
-
+    bitClear(aui_RDA5807_Reg[2], R02_SEEKUP);
+    bitSet(aui_RDA5807_Reg[2], R02_SEEK);
+    writeReg(2);
 }
 
 void RDA5807M::setBand(RADIO_BAND newBand)
@@ -150,14 +184,15 @@ bool RDA5807M::setFrequency(RADIO_FREQ newF)
     delay(50);
     for(byte i=0;i<100;i++)
     {
-        readReg(14, aui_RDA5807_Reg[14]);
-        if(bitRead(aui_RDA5807_Reg[14], R0A_STC))
+        readReg(0xA, aui_RDA5807_Reg[0xA]);
+        if(bitRead(aui_RDA5807_Reg[0xA], R0A_STC))
         {
             break;
         }
         delay(10);
     };
-    return bitRead(aui_RDA5807_Reg[14], R0A_STC);
+    writeReg(2);    //Turn RDS on again.
+    return bitRead(aui_RDA5807_Reg[0xA], R0A_STC);
 }
 
 void RDA5807M::setMono(bool switchOn)
@@ -192,7 +227,7 @@ bool RDA5807M::debugStatus(word* regs)
 bool RDA5807M::readReg(byte regNr, word& val)
 {
     byte data[2];
-    if(!_pRadio->sendReceive(RDA5807_adrs, &regNr, 1, data,2))
+    if(!_pRadio->sendReceive(RDA5807_adrr, &regNr, 1, data,2))
     {
         return false;
     }
@@ -242,6 +277,6 @@ void RDA5807M::registerToArray(word regIn, byte* dataOut)
 word RDA5807M::arrayToRegister(byte* dataIn)
 {
     //RDA5807 is big endian
-    word data =  dataIn[0]*256 + dataIn[1];
+    word data =  (dataIn[0]<<8) | dataIn[1];
     return data;
 }

@@ -187,9 +187,6 @@ void RADIO::getAudioInfo(AUDIO_INFO *info) {
 } // getAudioInfo()
 
 
-/// In the general radio implementation there is no chip for RDS.
-/// This function needs to be implemented for radio chips with RDS receiving functionality.
-void RADIO::checkRDS() { /* no chip : nothing to check */ }
 
 
 /// Send a 0.0.0.0 to the RDS receiver if there is any attached.

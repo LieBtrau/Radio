@@ -191,7 +191,7 @@ public:
 
   // ----- Supporting RDS for FM bands -----
 
-  virtual void checkRDS(); ///< Check if RDS Data is available and good.
+  virtual bool checkRDS()=0; ///< Check if RDS Data is available and good.
   virtual void clearRDS(); ///< Clear RDS data in the attached RDS Receiver by sending 0,0,0,0.
   virtual void attachReceiveRDS(receiveRDSFunction newFunction); ///< Register a RDS processor function.
 

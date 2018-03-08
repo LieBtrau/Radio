@@ -38,8 +38,7 @@ public:
     const uint8_t MAXVOLUME = 15;   ///< max volume level for radio implementations.
     typedef enum {KHz100=0, KHz200=1, KHz50=2}SPACINGS; //25KHz spacing is nowhere used.
 
-    RDA5807M(RadioInterface* prf): RADIO(prf){}
-
+    RDA5807M(RadioInterface* prf);
     bool   init();
     void   term();
 
@@ -60,7 +59,7 @@ public:
     void    seekDown(bool toNextSender = true); // start seek mode downwards
 
     // ----- Supporting RDS for RADIO_BAND_FM and RADIO_BAND_FMWORLD
-    void    checkRDS();
+    bool    checkRDS();
 
     // ----- combined status functions -----
     virtual void getRadioInfo(RADIO_INFO *info); ///< Retrieve some information about the current radio function of the chip.
@@ -77,6 +76,9 @@ private:
     const byte R02_DMUTE=14;
     const byte R02_MONO=13;
     const byte R02_BASS=12;
+    const byte R02_SEEKUP=9;
+    const byte R02_SEEK=8;
+    const byte R02_SKMODE=7;
     const byte R02_RDS_EN=3;
     const byte R02_SOFT_RESET=1;
     const byte R02_ENABLE=0;
@@ -91,6 +93,7 @@ private:
     const byte R05_LNA_ICSEL_BIT=0x2;
     const byte R0A_RDSR=15;
     const byte R0A_STC=14;
+    const byte R0A_RDSS=12;
     const byte R0A_ST=10;
     const byte R0B_FM_TRUE=8;
 
