@@ -4,10 +4,14 @@
 #include <Arduino.h>
 #include <RDA5807M.h>
 #include "radiointerfacei2c.h"
+#include "RDSParser.h"
 
 RadioInterfaceI2c radi2c;
 RDA5807M radio(&radi2c);    ///< Create an instance of a RDA5807 chip radio
-unsigned long time;
+RDSParser rdsParse;
+
+RADIO_INFO info;
+
 void setup() {
     Serial.begin(9600);
     while (!Serial);
@@ -19,13 +23,15 @@ void setup() {
         return;
     }
     radio.setBand(RADIO_BAND_FMWORLD);
-    if(radio.setFrequency(9860))           //102.8 MHz
+    if(radio.setFrequency(9040))           //90.4 MHz
     {
         Serial.println("tuning ok");
     }
     radio.setVolume(1);
+    radio.attachReceiveRDS(parseData);
+    rdsParse.attachTextCallback(printText);
+    rdsParse.attachServicenNameCallback(printServiceName);
     Serial.println("Radio ok");
-    time=millis();
 } // setup
 
 
@@ -35,17 +41,32 @@ void loop() {
     {
         radio.seekUp();
     }
-    if(millis()>time+1000)
-    {
-        radio.checkRDS();
-        time=millis();
-        String strFreq = String(radio.getFrequency());
-        String strOutput = "Frequency :"+ strFreq.substring(0, strFreq.length()-2) \
-                + "." + strFreq.substring(strFreq.length()-2)+"MHz";
-        Serial.println(strOutput);
-        Serial.read();
-    }
+            String strFreq = String(radio.getFrequency());
+            String strOutput = "Frequency :"+ strFreq.substring(0, strFreq.length()-2) \
+                    + "." + strFreq.substring(strFreq.length()-2)+"MHz RSSI:"+ info.rssi;
+            Serial.println(strOutput);
+            Serial.read();
+    radio.checkRDS();
+            radio.getRadioInfo(&info);
+            delay(50);
 } // loop
+
+void parseData(uint16_t b1, uint16_t b2,uint16_t b3, uint16_t b4)
+{
+    rdsParse.processData(b1, b2, b3, b4);
+}
+
+void printText(const char* text)
+{
+    Serial.println(text);
+    Serial.println();
+}
+
+void printServiceName(const char* text)
+{
+    Serial.println(text);
+    Serial.println();
+}
 
 // End.
 

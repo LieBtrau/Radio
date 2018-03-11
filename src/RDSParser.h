@@ -26,9 +26,9 @@
 
 /// callback function for passing a ServicenName 
 extern "C" {
-  typedef void(*receiveServicenNameFunction)(char *name);
-  typedef void(*receiveTextFunction)(char *name);
-  typedef void(*receiveTimeFunction)(uint8_t hour, uint8_t minute);
+typedef void(*receiveServicenNameFunction)(const char *name);
+typedef void(*receiveTextFunction)(const char *name);
+typedef void(*receiveTimeFunction)(uint8_t hour, uint8_t minute);
 }
 
 
@@ -36,35 +36,41 @@ extern "C" {
 class RDSParser
 {
 public:
-  RDSParser(); ///< create a new object from this class.
+    RDSParser(); ///< create a new object from this class.
 
-  /// Initialize internal variables before starting or after a change to another channel.
-  void init();
+    /// Initialize internal variables before starting or after a change to another channel.
+    void init();
 
-  /// Pass all available RDS data through this function.
-  void processData(uint16_t block1, uint16_t block2, uint16_t block3, uint16_t block4);
+    /// Pass all available RDS data through this function.
+    void processData(uint16_t block1, uint16_t block2, uint16_t block3, uint16_t block4);
 
-  void attachServicenNameCallback(receiveServicenNameFunction newFunction); ///< Register function for displaying a new Service Name.
-  void attachTextCallback(receiveTextFunction newFunction); ///< Register the function for displaying a rds text.
-  void attachTimeCallback(receiveTimeFunction newFunction); ///< Register function for displaying a new time
+    void attachServicenNameCallback(receiveServicenNameFunction newFunction); ///< Register function for displaying a new Service Name.
+    void attachTextCallback(receiveTextFunction newFunction); ///< Register the function for displaying a rds text.
+    void attachTimeCallback(receiveTimeFunction newFunction); ///< Register function for displaying a new time
 
 private:
-  // ----- actual RDS values
-  uint8_t rdsGroupType, rdsTP, rdsPTY;
-  uint8_t _textAB, _last_textAB, _lastTextIDX;
+    // ----- actual RDS values
+    byte gtype, pty, countryCode, progAreaCoverage, progRefNr, app, _lastTextIDX;
+    bool
+    b0,//message version A or B
+    tp,//traffic program
+    _textAB, _last_textAB;// A/B-flag for radio text.
 
-  // Program Service Name
-  char _PSName1[10]; // including trailing '\00' character.
-  char _PSName2[10]; // including trailing '\00' character.
-  char programServiceName[10];    // found station name or empty. Is max. 8 character long.
+    // Program Service Name
+    char _PSName1[9]; // including trailing '\00' character.
+    char _PSName2[9]; // including trailing '\00' character.
+    char* psName;
+    char programServiceName[10];    // found station name or empty. Is max. 8 character long.
+    char rdsText1[64 + 1];
+    char rdsText2[64 + 1];
+    char* pRdsText;
+    char rdsText[64+1];
+    receiveServicenNameFunction _sendServiceName; ///< Registered ServiceName function.
+    receiveTimeFunction _sendTime; ///< Registered Time function.
+    receiveTextFunction _sendText;
 
-  receiveServicenNameFunction _sendServiceName; ///< Registered ServiceName function.
-  receiveTimeFunction _sendTime; ///< Registered Time function.
-  receiveTextFunction _sendText;
+    uint16_t _lastRDSMinutes; ///< last RDS time send to callback.
 
-  uint16_t _lastRDSMinutes; ///< last RDS time send to callback.
-
-  char _RDSText[64 + 2];
 
 }; //RDSParser
 

@@ -125,12 +125,10 @@ void RADIO::setBand(RADIO_BAND newBand) {
   if (newBand == RADIO_BAND_FM) {
     _freqLow = 8700;
     _freqHigh = 10800;
-    _freqSteps = 10; //100KHz
   }
   else if (newBand == RADIO_BAND_FMWORLD) {
     _freqLow = 7600;
     _freqHigh = 10800;
-    _freqSteps = 10;
   } // if
 } // setBand()
 
@@ -160,7 +158,7 @@ RADIO_FREQ RADIO::getFrequencyStep(){ return(_freqSteps); }
 
 /// Return all the Radio settings.
 /// This implementation only knows some values from the last settings.
-void RADIO::getRadioInfo(RADIO_INFO *info) {
+bool RADIO::getRadioInfo(RADIO_INFO *info) {
   // set everything to false and 0.
   memset(info, 0, sizeof(RADIO_INFO));
   // info->tuned = false;

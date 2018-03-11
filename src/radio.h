@@ -185,7 +185,7 @@ public:
 
   // ----- combined status functions -----
 
-  virtual void getRadioInfo(RADIO_INFO *info); ///< Retrieve some information about the current radio function of the chip.
+  virtual bool getRadioInfo(RADIO_INFO *info); ///< Retrieve some information about the current radio function of the chip.
 
   virtual void getAudioInfo(AUDIO_INFO *info); ///< Retrieve some information about the current audio function of the chip.
 
@@ -210,7 +210,7 @@ protected:
 
   RADIO_FREQ _freqLow;    ///< Lowest frequency of the current selected band.
   RADIO_FREQ _freqHigh;   ///< Highest frequency of the current selected band.
-  RADIO_FREQ _freqSteps;  ///< Resolution of the tuner.
+  RADIO_FREQ _freqSteps=10;  ///< Resolution of the tuner.
 
   receiveRDSFunction _sendRDS; ///< Registered RDS Function that is called on new available data.
 

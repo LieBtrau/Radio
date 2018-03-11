@@ -62,7 +62,7 @@ public:
     bool    checkRDS();
 
     // ----- combined status functions -----
-    virtual void getRadioInfo(RADIO_INFO *info); ///< Retrieve some information about the current radio function of the chip.
+    virtual bool getRadioInfo(RADIO_INFO *info); ///< Retrieve some information about the current radio function of the chip.
 
     // ----- Supporting RDS for RADIO_BAND_FM and RADIO_BAND_FMWORLD
 
@@ -80,6 +80,7 @@ private:
     const byte R02_SEEK=8;
     const byte R02_SKMODE=7;
     const byte R02_RDS_EN=3;
+    const byte R02_NEW_METHOD=2;
     const byte R02_SOFT_RESET=1;
     const byte R02_ENABLE=0;
     const byte R03_TUNE=4;
@@ -87,6 +88,7 @@ private:
     const byte R03_BAND0=2;
     const byte R03_SPACE1=1;
     const byte R03_SPACE0=0;
+    const byte R04_DE=11;
     const byte R05_INT_MODE=15;
     const word R05_SEEKTH=0x08;
     const byte R05_LNA_PORT_SEL=0x2;
@@ -96,6 +98,7 @@ private:
     const byte R0A_RDSS=12;
     const byte R0A_ST=10;
     const byte R0B_FM_TRUE=8;
+    const byte R0B_FM_READY=7;
 
     const word RDA5807_adrs=0x10;       // I2C-Address RDA Chip for sequential  Access
     const word RDA5807_adrr=0x11;       // I2C-Address RDA Chip for random      Access
@@ -111,4 +114,5 @@ private:
     void registerToArray(word regIn, byte* dataOut);
     word arrayToRegister(byte* dataIn);
     word aui_RDA5807_Reg[16];
+    unsigned long rdsPollTime;
 };

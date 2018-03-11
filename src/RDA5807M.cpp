@@ -15,27 +15,22 @@ RDA5807M::RDA5807M(RadioInterface* prf): RADIO(prf)
 
 bool RDA5807M::checkRDS()
 {
-    if(!readReg(0xA, aui_RDA5807_Reg[0xA]))
+    if(millis()<rdsPollTime+50)
+    {
+	return false;
+    }
+    rdsPollTime=millis();
+
+    if(!readAllRegs(&aui_RDA5807_Reg[0xA]) || !bitRead(aui_RDA5807_Reg[0xA],R0A_RDSS))
     {
         return false;
     }
-    if(!bitRead(aui_RDA5807_Reg[0xA],R0A_RDSS))
-    {
-        Serial.println("RDS not synced");
-        return false;
-    }
-    Serial.println("RDS synced");
-    if(!bitRead(aui_RDA5807_Reg[0xA],R0A_RDSR))
+    if(!bitRead(aui_RDA5807_Reg[0xA],R0A_RDSR) || (aui_RDA5807_Reg[0xA]&0xF))
     {
         return false;
     }
-    Serial.println("RDS group ready");
-    for(byte i=0xC;i<=0xF;i++)
-    {
-        readReg(i,aui_RDA5807_Reg[i]);
-        Serial.print(aui_RDA5807_Reg[i]);Serial.print(" ");
-    }
-    Serial.println();
+    Serial.println("rds ok");
+    _sendRDS(aui_RDA5807_Reg[0xC], aui_RDA5807_Reg[0xD],aui_RDA5807_Reg[0xE],aui_RDA5807_Reg[0xF]);
     return true;
 }
 
@@ -49,19 +44,20 @@ RADIO_FREQ RDA5807M::getFrequency(void)
     return _freqLow + _freqSteps * channel;
 }
 
-void RDA5807M::getRadioInfo(RADIO_INFO *info)
+bool RDA5807M::getRadioInfo(RADIO_INFO *info)
 {
     RADIO::getRadioInfo(info);
 
     if(!readAllRegs(&aui_RDA5807_Reg[0xA]))
     {
-        return;
+        return false;
     }
     info->stereo = bitRead(aui_RDA5807_Reg[0xA], R0A_ST);
     info->mono = bitRead(aui_RDA5807_Reg[0x2], R02_MONO);
     info->rds = bitRead(aui_RDA5807_Reg[0xA], R0A_RDSR);
     info->rssi = aui_RDA5807_Reg[0xB]>>9;
-    info->tuned = bitRead(aui_RDA5807_Reg[0xB], R0B_FM_TRUE);
+    info->tuned = bitRead(aui_RDA5807_Reg[0xB], R0B_FM_TRUE) && bitRead(aui_RDA5807_Reg[0xB], R0B_FM_READY);
+    return true;
 }
 
 bool RDA5807M::init()
@@ -71,12 +67,17 @@ bool RDA5807M::init()
     {
         return false;
     }
+//    bitSet(aui_RDA5807_Reg[4],R04_DE);//de-emphasis 50µs
+//    writeReg(4);
     bitSet(aui_RDA5807_Reg[5],R05_INT_MODE);
     aui_RDA5807_Reg[5] = R05_SEEKTH<<8 | R05_LNA_PORT_SEL<<6 | R05_LNA_ICSEL_BIT<<4;
     setBassBoost(true);
     bitSet(aui_RDA5807_Reg[2], R02_RDS_EN);
+    bitSet(aui_RDA5807_Reg[2], R02_NEW_METHOD);
+    //bitSet(aui_RDA5807_Reg[2], R02_MONO);
     setBand(RADIO_BAND_FMWORLD);
-    setChannelSpacing(KHz100);
+    setChannelSpacing(KHz50);
+    rdsPollTime=millis();
     return setFrequency(_freqLow);
 }
 
@@ -172,6 +173,7 @@ bool RDA5807M::setFrequency(RADIO_FREQ newF)
     {
         return false;
     }
+    _freq=newF;
     newF-=_freqLow;
     channel= newF / _freqSteps;
     aui_RDA5807_Reg[3]&=0x003F;
@@ -255,12 +257,12 @@ bool RDA5807M::writeAllRegs()
 
 bool RDA5807M::readAllRegs(word* regs)
 {
-    byte data[16];
+    byte data[12];
     if(!_pRadio->receive(RDA5807_adrs, data, sizeof(data)))
     {
         return false;
     }
-    for(byte i=0;i<8;i++)
+    for(byte i=0;i<6;i++)
     {
         regs[i] = arrayToRegister(&data[i<<1]);
     }
