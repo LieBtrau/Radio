@@ -21,15 +21,14 @@ bool RDA5807M::checkRDS()
     }
     rdsPollTime=millis();
 
-    if(!readAllRegs(&aui_RDA5807_Reg[0xA]) || !bitRead(aui_RDA5807_Reg[0xA],R0A_RDSS))
+    if(!_readRegisters(&aui_RDA5807_Reg[0xA]) || !bitRead(aui_RDA5807_Reg[0xA],R0A_RDSS))
     {
         return false;
     }
-    if(!bitRead(aui_RDA5807_Reg[0xA],R0A_RDSR) || (aui_RDA5807_Reg[0xA]&0xF))
+    if(!bitRead(aui_RDA5807_Reg[0xA],R0A_RDSR) || ((aui_RDA5807_Reg[0xA]&0x3==3)) || ((aui_RDA5807_Reg[0xA]&0xC==0xC)))
     {
         return false;
     }
-    Serial.println("rds ok");
     _sendRDS(aui_RDA5807_Reg[0xC], aui_RDA5807_Reg[0xD],aui_RDA5807_Reg[0xE],aui_RDA5807_Reg[0xF]);
     return true;
 }
@@ -48,7 +47,7 @@ bool RDA5807M::getRadioInfo(RADIO_INFO *info)
 {
     RADIO::getRadioInfo(info);
 
-    if(!readAllRegs(&aui_RDA5807_Reg[0xA]))
+    if(!_readRegisters(&aui_RDA5807_Reg[0xA]))
     {
         return false;
     }
@@ -221,7 +220,7 @@ void RDA5807M::setVolume(byte newVolume)
 
 bool RDA5807M::debugStatus(word* regs)
 {
-    return readAllRegs(regs);
+    return _readRegisters(regs);
 
 }
 
@@ -245,7 +244,7 @@ bool RDA5807M::writeReg(byte regNr)
     return _pRadio->send(RDA5807_adrr, data, sizeof(data));
 }
 
-bool RDA5807M::writeAllRegs()
+bool RDA5807M::_saveRegisters()
 {
     byte data[10];
     for (byte i=2;i<7;i++)
@@ -255,7 +254,7 @@ bool RDA5807M::writeAllRegs()
     return _pRadio->send(RDA5807_adrs, data, sizeof(data));
 }
 
-bool RDA5807M::readAllRegs(word* regs)
+bool RDA5807M::_readRegisters(word* regs)
 {
     byte data[12];
     if(!_pRadio->receive(RDA5807_adrs, data, sizeof(data)))

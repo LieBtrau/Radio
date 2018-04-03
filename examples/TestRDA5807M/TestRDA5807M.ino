@@ -31,6 +31,7 @@ void setup() {
     radio.attachReceiveRDS(parseData);
     rdsParse.attachTextCallback(printText);
     rdsParse.attachServicenNameCallback(printServiceName);
+    rdsParse.attachTimeCallback(printTime);
     Serial.println("Radio ok");
 } // setup
 
@@ -41,14 +42,10 @@ void loop() {
     {
         radio.seekUp();
     }
-            String strFreq = String(radio.getFrequency());
-            String strOutput = "Frequency :"+ strFreq.substring(0, strFreq.length()-2) \
-                    + "." + strFreq.substring(strFreq.length()-2)+"MHz RSSI:"+ info.rssi;
-            Serial.println(strOutput);
-            Serial.read();
+    Serial.read();
     radio.checkRDS();
-            radio.getRadioInfo(&info);
-            delay(50);
+    radio.getRadioInfo(&info);
+    delay(50);
 } // loop
 
 void parseData(uint16_t b1, uint16_t b2,uint16_t b3, uint16_t b4)
@@ -66,6 +63,13 @@ void printServiceName(const char* text)
 {
     Serial.println(text);
     Serial.println();
+}
+
+void printTime(unsigned long utcSeconds, char halfHoursOffset)
+{
+    char buf[50];
+    sprintf(buf,"%d, %d\n",utcSeconds, halfHoursOffset);
+    Serial.println(buf);
 }
 
 // End.

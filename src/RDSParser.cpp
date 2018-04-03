@@ -54,12 +54,10 @@ void RDSParser::attachTimeCallback(receiveTimeFunction newFunction)
 void RDSParser::processData(uint16_t block1, uint16_t block2, uint16_t block3, uint16_t block4)
 {
     // DEBUG_FUNC0("process");
-    byte  idx; // index of rdsText
-    char c1, c2;
-    char *p;
-
-    uint16_t mins; ///< RDS time in minutes
-    uint8_t off;   ///< RDS time offset and sign
+    byte  idx, mins, hours;
+    char halfHoursOffset;
+    unsigned long modJulDayCode=0;
+    unsigned long utcSeconds=0;
 
     // Serial.print('('); Serial.print(block1, HEX); Serial.print(' '); Serial.print(block2, HEX); Serial.print(' '); Serial.print(block3, HEX); Serial.print(' '); Serial.println(block4, HEX);
 
@@ -128,8 +126,13 @@ void RDSParser::processData(uint16_t block1, uint16_t block2, uint16_t block3, u
             {
                 if( ((strlen(rdsText1)==sizeof(rdsText1)-1) || strchr(rdsText1,'\r')) &&
                         (strlen(rdsText1)==strlen(rdsText2)) &&
-                         (!strncmp(rdsText1, rdsText2, sizeof(rdsText1))) )
+                        (!strncmp(rdsText1, rdsText2, sizeof(rdsText1))) )
                 {
+                    char* pc;
+                    if(pc=strchr(rdsText1,'\r'))
+                    {
+                        *(pc+1)='\0';
+                    }
                     strncpy(rdsText, rdsText1, sizeof(rdsText1));
                     if (_sendText)
                     {
@@ -143,6 +146,18 @@ void RDSParser::processData(uint16_t block1, uint16_t block2, uint16_t block3, u
             //The group 3A is used to transmit the identification of the applications for free usage (ODA) as well as the groups used for these applications
             break;
         case 0x4:
+            //The transmitted clock-time and date shall be accurately set to UTC plus local offset time. Otherwise the
+            //transmitted CT codes shall all be set to zero
+            modJulDayCode = ((block2 & 0x3) << 15) | ((block3 & 0xFFFE) >> 1);
+            mins = (block4 >> 6) & 0x3F;
+            hours =  ((block3 & 0x0001) << 4) | ((block4 >> 12) & 0x0F);
+            //Conversion to UTC from https://en.wikipedia.org/wiki/Julian_day
+            utcSeconds= (modJulDayCode - 40587) * 86400 + hours * 3600 + mins * 60;
+            halfHoursOffset = !bitRead(block4, 5) ? block4 & 0x1F : -(block4 & 0x1F);
+            if(_sendTime)
+            {
+                _sendTime(utcSeconds, halfHoursOffset);
+            } // if
             break;
         case 0x8:
             //The 8A group can be used for Open Data Architecture (ODA) or for Traffic Message Chanel (TMC)
@@ -151,62 +166,14 @@ void RDSParser::processData(uint16_t block1, uint16_t block2, uint16_t block3, u
             //The 14A group is used to send EON (Enhanced Other Network) information
             break;
         default:
-            Serial.println(gtype);
+            //Serial.println(gtype);
             break;
         }
     }
     else
     {
         //B-version
-        Serial.println(gtype);
-    }
-    switch (gtype) {
-    case 0x0A:
-    case 0x0B:
-        break;
-
-    case 0x4A:
-        // Clock time and date
-        off = (block4)& 0x3F; // 6 bits
-        mins = (block4 >> 6) & 0x3F; // 6 bits
-        mins += 60 * (((block3 & 0x0001) << 4) | ((block4 >> 12) & 0x0F));
-
-        // adjust offset
-        if (off & 0x20) {
-            mins -= 30 * (off & 0x1F);
-        } else {
-            mins += 30 * (off & 0x1F);
-        }
-
-        if ((_sendTime) && (mins != _lastRDSMinutes)) {
-            _lastRDSMinutes = mins;
-            _sendTime(mins / 60, mins % 60);
-        } // if
-        break;
-
-    case 0x6A:
-        // IH
-        break;
-
-    case 0x8A:
-        // TMC
-        break;
-
-    case 0xAA:
-        // TMC
-        break;
-
-    case 0xCA:
-        // TMC
-        break;
-
-    case 0xEA:
-        // IH
-        break;
-
-    default:
-        // Serial.print("RDS_GRP:"); Serial.println(rdsGroupType, HEX);
-        break;
+        //Serial.println(gtype);
     }
 } // processData()
 

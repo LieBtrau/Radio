@@ -28,7 +28,7 @@
 extern "C" {
 typedef void(*receiveServicenNameFunction)(const char *name);
 typedef void(*receiveTextFunction)(const char *name);
-typedef void(*receiveTimeFunction)(uint8_t hour, uint8_t minute);
+typedef void(*receiveTimeFunction)(unsigned long utcSeconds, char halfHoursOffset);
 }
 
 
@@ -68,9 +68,7 @@ private:
     receiveServicenNameFunction _sendServiceName; ///< Registered ServiceName function.
     receiveTimeFunction _sendTime; ///< Registered Time function.
     receiveTextFunction _sendText;
-
-    uint16_t _lastRDSMinutes; ///< last RDS time send to callback.
-
+    unsigned long ulTimeStamp=0;
 
 }; //RDSParser
 

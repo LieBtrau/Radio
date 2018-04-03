@@ -107,10 +107,10 @@ private:
     enum {US_EU=0, JPN=1, WW=2, EEUR=3}bands;
     bool reset();
     bool powerOn(bool bPowerOn);
-    bool readAllRegs(word *regs);                       ///< Read regs 0x0A and up.
+    bool _readRegisters(word *regs);                       ///< Read regs 0x0A and up.
     bool readReg(byte regNr, word &val);
     bool writeReg(byte regNr);
-    bool writeAllRegs();                                ///< Write regs 0x02 and up.
+    bool _saveRegisters();                                ///< Write regs 0x02 and up.
     void registerToArray(word regIn, byte* dataOut);
     word arrayToRegister(byte* dataIn);
     word aui_RDA5807_Reg[16];
