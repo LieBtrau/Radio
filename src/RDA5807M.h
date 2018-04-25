@@ -43,7 +43,7 @@ public:
     void   term();
 
     // ----- Audio features -----
-    void   setVolume(uint8_t newVolume);
+    void   setVolume(byte newVolume);
     bool setBassBoost(bool switchOn);
     void   setMono(bool switchOn);
     void   setMute(bool switchOn);
@@ -55,8 +55,8 @@ public:
     void   setChannelSpacing(SPACINGS sp);
     RADIO_FREQ getFrequency(void);
 
-    void    seekUp(bool toNextSender = true);   // start seek mode upwards
-    void    seekDown(bool toNextSender = true); // start seek mode downwards
+    bool    seekUp(bool toNextSender = true);   // start seek mode upwards
+    bool    seekDown(bool toNextSender = true); // start seek mode downwards
 
     // ----- Supporting RDS for RADIO_BAND_FM and RADIO_BAND_FMWORLD
     bool    checkRDS();
@@ -114,5 +114,4 @@ private:
     void registerToArray(word regIn, byte* dataOut);
     word arrayToRegister(byte* dataIn);
     word aui_RDA5807_Reg[16];
-    unsigned long rdsPollTime;
 };

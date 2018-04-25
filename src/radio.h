@@ -113,7 +113,7 @@ enum RADIO_BAND {
 /// Frequency data type.
 /// Only 16 bits are used for any frequency value (unit = 10KHz)
 /// e.g. 87.1MHz -> RADIO_FREQ = 8710
-typedef uint16_t RADIO_FREQ;
+typedef word RADIO_FREQ;
 
 
 /// A structure that contains information about the radio features from the chip.
@@ -151,7 +151,7 @@ public:
 
   // ----- Audio features -----
 
-  virtual void    setVolume(uint8_t newVolume); ///< Control the volume output of the radio chip in the range 0..15.
+  virtual void    setVolume(byte newVolume); ///< Control the volume output of the radio chip in the range 0..15.
   virtual uint8_t getVolume();                  ///< Retrieve the current output volume in the range 0..15.
 
   virtual void    setMute(bool switchOn);       ///< Control the mute mode of the radio chip.
@@ -177,8 +177,8 @@ public:
 
   virtual void       setBandFrequency(RADIO_BAND newBand, RADIO_FREQ newFreq); ///< Set Band and Frequency in one call.
 
-  virtual void       seekUp(bool toNextSender = true);   ///< Start a seek upwards from the current frequency.
-  virtual void       seekDown(bool toNextSender = true); ///< Start a seek downwards from the current frequency.
+  virtual bool       seekUp(bool toNextSender = true);   ///< Start a seek upwards from the current frequency.
+  virtual bool       seekDown(bool toNextSender = true); ///< Start a seek downwards from the current frequency.
 
   virtual void       setMono(bool switchOn);   ///< Control the mono mode of the radio chip.
   virtual bool       getMono();                ///< Retrieve the current mono mode setting.
@@ -199,6 +199,7 @@ public:
 
 
 protected:
+  unsigned long rdsPollTime=0;
   uint8_t _volume;    ///< Last set volume level.
   bool    _bassBoost; ///< Last set bass Boost effect.
   bool    _mono;      ///< Last set mono effect.

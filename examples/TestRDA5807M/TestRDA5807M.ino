@@ -9,7 +9,6 @@
 RadioInterfaceI2c radi2c;
 RDA5807M radio(&radi2c);    ///< Create an instance of a RDA5807 chip radio
 RDSParser rdsParse;
-
 RADIO_INFO info;
 
 void setup() {

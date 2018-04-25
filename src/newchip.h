@@ -16,8 +16,7 @@
 /// * 05.08.2014 created.
 
 
-#ifndef newchip_h
-#define newchip_h
+#pragma once
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -90,5 +89,3 @@ class newchip : public RADIO {
   void _seek(bool seekUp = true);
   void _waitEnd();
 };
-
-#endif

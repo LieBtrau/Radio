@@ -33,7 +33,7 @@
 
 /// The RADIO class doesn't implement a concrete chip so nothing has to be initialized.
 bool RADIO::init() {
-  return(false);
+    return(false);
 } // init()
 
 
@@ -45,14 +45,14 @@ void RADIO::term() {
 
 // ----- Volume control -----
 
-void RADIO::setVolume(uint8_t newVolume) {
+void RADIO::setVolume(byte newVolume) {
 
-  _volume = newVolume > MAXVOLUME ? MAXVOLUME : newVolume;
+    _volume = newVolume > MAXVOLUME ? MAXVOLUME : newVolume;
 } // setVolume()
 
 
 uint8_t RADIO::getVolume() {
-  return(_volume);
+    return(_volume);
 } // getVolume()
 
 
@@ -62,14 +62,14 @@ uint8_t RADIO::getVolume() {
 /// The base implementation ony stores the value to the internal variable.
 /// @param switchOn true to switch bassBoost mode on, false to switch bassBoost mode off.
 bool RADIO::setBassBoost(bool switchOn) {
-  _bassBoost = switchOn;
+    _bassBoost = switchOn;
 } // setBassBoost()
 
 
 /// Retrieve the current bass boost mode setting.
 /// The base implementation returns only the value in the internal variable.
 bool RADIO::getBassBoost() {
-  return(_bassBoost);
+    return(_bassBoost);
 } // getBassBoost()
 
 
@@ -77,13 +77,13 @@ bool RADIO::getBassBoost() {
 
 /// The base implementation ony stores the value to the internal variable.
 void RADIO::setMono(bool switchOn) {
-  _mono = switchOn;
+    _mono = switchOn;
 } // setMono()
 
 
 /// The base implementation returns only the value in the internal variable.
 bool RADIO::getMono() {
-  return(_mono);
+    return(_mono);
 } // getMono()
 
 
@@ -91,13 +91,13 @@ bool RADIO::getMono() {
 
 /// The base implementation ony stores the value to the internal variable.
 void RADIO::setMute(bool switchOn) {
-  _mute = switchOn;
+    _mute = switchOn;
 } // setMute()
 
 
 /// The base implementation returns only the value in the internal variable.
 bool RADIO::getMute() {
-  return(_mute);
+    return(_mute);
 } // getMute()
 
 
@@ -105,13 +105,13 @@ bool RADIO::getMute() {
 
 /// The base implementation ony stores the value to the internal variable.
 void RADIO::setSoftMute(bool switchOn) {
-  _softMute = switchOn;
+    _softMute = switchOn;
 } // setSoftMute()
 
 
 /// The base implementation returns only the value in the internal variable.
 bool RADIO::getSoftMute() {
-  return(_softMute);
+    return(_softMute);
 } // getSoftMute()
 
 
@@ -121,33 +121,35 @@ bool RADIO::getSoftMute() {
 
 /// Start using the new band for receiving.
 void RADIO::setBand(RADIO_BAND newBand) {
-  _band = newBand;
-  if (newBand == RADIO_BAND_FM) {
-    _freqLow = 8700;
-    _freqHigh = 10800;
-  }
-  else if (newBand == RADIO_BAND_FMWORLD) {
-    _freqLow = 7600;
-    _freqHigh = 10800;
-  } // if
+    _band = newBand;
+    if (newBand == RADIO_BAND_FM) {
+        _freqLow = 8700;
+        _freqHigh = 10800;
+    }
+    else if (newBand == RADIO_BAND_FMWORLD) {
+        _freqLow = 7600;
+        _freqHigh = 10800;
+    } // if
 } // setBand()
 
 
 /// Start using the new frequency for receiving.
 /// The new frequency is stored for later retrieval.
 bool RADIO::setFrequency(RADIO_FREQ newFreq) {
-  _freq = newFreq;
+    if (newFreq < _freqLow)  newFreq = _freqLow;
+    if (newFreq > _freqHigh) newFreq = _freqHigh;
+    _freq = newFreq;
 } // setFrequency()
 
 
 void RADIO::setBandFrequency(RADIO_BAND newBand, RADIO_FREQ newFreq) {
-  setBand(newBand);
-  setFrequency(newFreq);
+    setBand(newBand);
+    setFrequency(newFreq);
 } // setBandFrequency()
 
 
-void RADIO::seekUp(bool)   {}
-void RADIO::seekDown(bool) {}
+bool RADIO::seekUp(bool)   {}
+bool RADIO::seekDown(bool) {}
 
 RADIO_BAND RADIO::getBand()         { return(_band); }
 RADIO_FREQ RADIO::getFrequency()    { return(_freq); }
@@ -159,14 +161,14 @@ RADIO_FREQ RADIO::getFrequencyStep(){ return(_freqSteps); }
 /// Return all the Radio settings.
 /// This implementation only knows some values from the last settings.
 bool RADIO::getRadioInfo(RADIO_INFO *info) {
-  // set everything to false and 0.
-  memset(info, 0, sizeof(RADIO_INFO));
-  // info->tuned = false;
-  // info->rds = false;
-  // info->stereo = false;
+    // set everything to false and 0.
+    memset(info, 0, sizeof(RADIO_INFO));
+    // info->tuned = false;
+    // info->rds = false;
+    // info->stereo = false;
 
-  // use current settings
-  info->mono = _mono;
+    // use current settings
+    info->mono = _mono;
 
 } // getRadioInfo()
 
@@ -174,14 +176,14 @@ bool RADIO::getRadioInfo(RADIO_INFO *info) {
 /// Return current settings as far as no chip is required.
 /// When using the radio::setXXX methods, no chip specific implementation is needed.
 void RADIO::getAudioInfo(AUDIO_INFO *info) {
-  // set everything to false and 0.
-  memset(info, 0, sizeof(AUDIO_INFO));
+    // set everything to false and 0.
+    memset(info, 0, sizeof(AUDIO_INFO));
 
-  // use current settings
-  info->volume = _volume;
-  info->mute = _mute;
-  info->softmute = _softMute;
-  info->bassBoost = _bassBoost;
+    // use current settings
+    info->volume = _volume;
+    info->mute = _mute;
+    info->softmute = _softMute;
+    info->bassBoost = _bassBoost;
 } // getAudioInfo()
 
 
@@ -190,8 +192,8 @@ void RADIO::getAudioInfo(AUDIO_INFO *info) {
 /// Send a 0.0.0.0 to the RDS receiver if there is any attached.
 /// This is to point out that there is a new situation and all existing data should be invalid from now on.
 void RADIO::clearRDS() { 
-  if (_sendRDS)
-    _sendRDS(0, 0, 0, 0);
+    if (_sendRDS)
+        _sendRDS(0, 0, 0, 0);
 } // clearRDS()
 
 
@@ -199,7 +201,7 @@ void RADIO::clearRDS() {
 // remember the RDS function
 void RADIO::attachReceiveRDS(receiveRDSFunction newFunction)
 {
-  _sendRDS = newFunction;
+    _sendRDS = newFunction;
 } // attachReceiveRDS()
 
 // The End.

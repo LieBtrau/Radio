@@ -111,14 +111,14 @@ void RDA5807M::term()
 
 }
 
-void RDA5807M::seekUp(bool toNextSender)
+bool RDA5807M::seekUp(bool toNextSender)
 {
     bitSet(aui_RDA5807_Reg[2], R02_SEEKUP);
     bitSet(aui_RDA5807_Reg[2], R02_SEEK);
     writeReg(2);
 }
 
-void RDA5807M::seekDown(bool toNextSender)
+bool RDA5807M::seekDown(bool toNextSender)
 {
     bitClear(aui_RDA5807_Reg[2], R02_SEEKUP);
     bitSet(aui_RDA5807_Reg[2], R02_SEEK);
@@ -167,14 +167,9 @@ void RDA5807M::setChannelSpacing(SPACINGS sp)
 
 bool RDA5807M::setFrequency(RADIO_FREQ newF)
 {
-    word channel;
-    if(newF>_freqHigh)
-    {
-        return false;
-    }
-    _freq=newF;
-    newF-=_freqLow;
-    channel= newF / _freqSteps;
+    RADIO::setFrequency(newF);
+    word channel = (_freq - _freqLow) / _freqSteps;
+
     aui_RDA5807_Reg[3]&=0x003F;
     aui_RDA5807_Reg[3]|=channel<<6;
     bitSet(aui_RDA5807_Reg[3], R03_TUNE);
@@ -214,7 +209,7 @@ void RDA5807M::setSoftMute(bool switchOn)
 void RDA5807M::setVolume(byte newVolume)
 {
     RADIO::setVolume(newVolume);
-    aui_RDA5807_Reg[5]=(aui_RDA5807_Reg[5] & 0xFFF0)| newVolume;
+    aui_RDA5807_Reg[5]=(aui_RDA5807_Reg[5] & 0xFFF0)| _volume;
     writeReg(5);
 }
 
