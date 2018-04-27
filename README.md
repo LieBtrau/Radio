@@ -9,3 +9,8 @@ It comes with several examples for different configurations and supports the fol
 * The TEA5767 from NXP.
 * The SI4703 from Silicon Labs.
 * The SI4705 from Silicon Labs.
+
+Compatibility
+=============
+* AVR based boards (tested on ProTrinket 3V)
+* STM32 based boards (tested on Nucleo STM32F103)
